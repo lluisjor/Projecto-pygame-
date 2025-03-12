@@ -33,8 +33,8 @@ speed = 5
 
 # Escenarios y puertas
 casas = {
-    "Enrique": pygame.Rect(100, 100, 80, 80),
-    "Viejas": pygame.Rect(600, 200, 80, 80),
+    "Enrique": pygame.Rect(100, 100, 80, 80),  # Casa de Enrique (sin cambios)
+    "Viejas": pygame.Rect(600, 350, 80, 80),   # Casa de las Viejas más baja
 }
 
 # Estados del juego
