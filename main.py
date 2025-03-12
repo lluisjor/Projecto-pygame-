@@ -7,86 +7,71 @@ pygame.init()
 # Configuración de pantalla
 WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Antonio Recio: Rey de las Gambas")
+pygame.display.set_caption("Antonio Recio: El Imperio del Marisco")
 
 # Colores
 WHITE = (255, 255, 255)
 RED = (200, 0, 0)
+BLUE = (0, 0, 255)
+BLACK = (0, 0, 0)
 
-# Cargar imágenes
-antonio_img = pygame.image.load("recio.png")  # Reemplazar con una imagen válida
-gamba_img = pygame.image.load("gamba.png")
-obstaculo_img = pygame.image.load("recio.png")
+# Cargar fondo estilo Inazuma Eleven
+background = pygame.image.load("fondo.png")  # Asegúrate de tener un fondo adecuado
+background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 
-# Escalar imágenes
-gamba_img = pygame.transform.scale(gamba_img, (50, 50))
-obstaculo_img = pygame.transform.scale(obstaculo_img, (50, 50))
+# Cargar sprite del personaje
+antonio_img = pygame.image.load("antonio.png")  # Imagen de Antonio Recio
+antonio_img = pygame.transform.scale(antonio_img, (50, 50))
 
-# Jugador
-player = pygame.Rect(WIDTH // 2, HEIGHT - 100, 60, 60)
-player_speed = 5
+# Posición inicial del personaje
+antonio_x, antonio_y = WIDTH // 2, HEIGHT // 2
+speed = 5
 
-# Lista de gambas y obstáculos
-gambas = []
-obstaculos = []
+# Enemigos en el mapa
+enemigos = [
+    pygame.Rect(200, 150, 50, 50),
+    pygame.Rect(500, 300, 50, 50),
+    pygame.Rect(700, 450, 50, 50)
+]
 
-# Puntuación
-score = 0
-font = pygame.font.Font(None, 36)
+# Estados del juego
+game_over = False
+combate = False
+enemigo_actual = None
 
 # Reloj
 clock = pygame.time.Clock()
 
 running = True
 while running:
-    screen.fill(WHITE)
+    screen.blit(background, (0, 0))  # Dibujar fondo
 
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
 
-    # Movimiento del jugador
     keys = pygame.key.get_pressed()
-    if keys[pygame.K_LEFT] and player.x > 0:
-        player.x -= player_speed
-    if keys[pygame.K_RIGHT] and player.x < WIDTH - player.width:
-        player.x += player_speed
+    if keys[pygame.K_LEFT]:
+        antonio_x -= speed
+    if keys[pygame.K_RIGHT]:
+        antonio_x += speed
+    if keys[pygame.K_UP]:
+        antonio_y -= speed
+    if keys[pygame.K_DOWN]:
+        antonio_y += speed
 
-    # Generar gambas y obstáculos aleatoriamente
-    if random.randint(1, 50) == 1:
-        gambas.append(pygame.Rect(random.randint(0, WIDTH - 50), 0, 50, 50))
-    if random.randint(1, 80) == 1:
-        obstaculos.append(pygame.Rect(random.randint(0, WIDTH - 50), 0, 50, 50))
+    # Mantener a Antonio dentro de la pantalla
+    antonio_x = max(0, min(WIDTH - 50, antonio_x))
+    antonio_y = max(0, min(HEIGHT - 50, antonio_y))
 
-    # Mover gambas y obstáculos
-    for gamba in gambas[:]:
-        gamba.y += 5
-        if gamba.colliderect(player):
-            score += 1
-            gambas.remove(gamba)
-        elif gamba.y > HEIGHT:
-            gambas.remove(gamba)
+    # Dibujar personaje
+    screen.blit(antonio_img, (antonio_x, antonio_y))
 
-    for obstaculo in obstaculos[:]:
-        obstaculo.y += 5
-        if obstaculo.colliderect(player):
-            running = False  # Fin del juego si toca obstáculo
-        elif obstaculo.y > HEIGHT:
-            obstaculos.remove(obstaculo)
-
-    # Dibujar elementos
-    screen.blit(antonio_img, (player.x, player.y))
-    for gamba in gambas:
-        screen.blit(gamba_img, (gamba.x, gamba.y))
-    for obstaculo in obstaculos:
-        screen.blit(obstaculo_img, (obstaculo.x, obstaculo.y))
-
-    # Mostrar puntuación
-    score_text = font.render(f"Puntuación: {score}", True, RED)
-    screen.blit(score_text, (10, 10))
+    # Dibujar enemigos
+    for enemigo in enemigos:
+        pygame.draw.rect(screen, RED, enemigo)
 
     pygame.display.flip()
     clock.tick(30)
 
 pygame.quit()
-
