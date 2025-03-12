@@ -14,9 +14,9 @@ WHITE = (255, 255, 255)
 RED = (200, 0, 0)
 
 # Cargar imágenes
-antonio_img = pygame.image.load("recio.jpg")  # Reemplazar con una imagen válida
+antonio_img = pygame.image.load("recio.png")  # Reemplazar con una imagen válida
 gamba_img = pygame.image.load("gamba.png")
-obstaculo_img = pygame.image.load("obstaculo.png")
+obstaculo_img = pygame.image.load("recio.png")
 
 # Escalar imágenes
 gamba_img = pygame.transform.scale(gamba_img, (50, 50))
