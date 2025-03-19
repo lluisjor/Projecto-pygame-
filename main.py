@@ -10,11 +10,14 @@ screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Antonio Recio: El Imperio del Marisco")
 
 # Cargar fondo de la portada de inicio
-fondo_inicio = pygame.image.load("static/fondo")
+fondo_inicio = pygame.image.load("static/fondo.png")
 fondo_inicio = pygame.transform.scale(fondo_inicio, (WIDTH, HEIGHT))
 
 # Colores
 WHITE = (255, 255, 255)
+RED = (200, 0, 0)
+BLUE = (0, 0, 255)  # Agregar definición del color BLUE
+BLACK = (0, 0, 0)
 
 # Cargar fondo
 background = pygame.image.load("static/images.jpeg")
@@ -70,8 +73,8 @@ clock = pygame.time.Clock()
 # Función para la pantalla de inicio
 def pantalla_inicio():
     font = pygame.font.Font(None, 48)
-    texto_jugar = font.render("Jugar", True, WHITE)
-    texto_salir = font.render("Salir", True, WHITE)
+    texto_jugar = font.render("Presiona ENTER para Jugar", True, WHITE)
+    texto_salir = font.render("Presiona ESC para Salir", True, WHITE)
 
     screen.blit(fondo_inicio, (0, 0))  # Mostrar la imagen de fondo
 
@@ -177,9 +180,9 @@ def main():
                 pygame.quit()
                 return
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_j:  # Jugar
+                if event.key == pygame.K_RETURN:  # Enter para jugar
                     iniciar_juego()
-                elif event.key == pygame.K_s:  # Salir
+                elif event.key == pygame.K_ESCAPE:  # Escape para salir
                     pygame.quit()
                     return
 
