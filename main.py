@@ -9,15 +9,18 @@ WIDTH, HEIGHT = 800, 600
 screen = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Antonio Recio: El Imperio del Marisco")
 
-# Cargar fondo de la portada de inicio
-fondo_inicio = pygame.image.load("static/fondo.png")
-fondo_inicio = pygame.transform.scale(fondo_inicio, (WIDTH, HEIGHT))
-
 # Colores
 WHITE = (255, 255, 255)
 RED = (200, 0, 0)
-BLUE = (0, 0, 255)  # Agregar definición del color BLUE
+GREEN = (0, 255, 0)  # Color para la barra de vida
+YELLOW = (255, 255, 0)  # Color intermedio para la vida
+DARK_RED = (139, 0, 0)  # Fondo de la barra de vida
 BLACK = (0, 0, 0)
+BLUE = (0, 0, 255)  # Definición del color azul
+
+# Cargar fondo de la portada de inicio
+fondo_inicio = pygame.image.load("static/fondo.png")
+fondo_inicio = pygame.transform.scale(fondo_inicio, (WIDTH, HEIGHT))
 
 # Cargar fondo
 background = pygame.image.load("static/images.jpeg")
@@ -31,33 +34,6 @@ background_viejas = pygame.transform.scale(background_viejas, (WIDTH, HEIGHT))
 antonio_img = pygame.image.load("static/recio.png")
 antonio_img = pygame.transform.scale(antonio_img, (50, 50))
 
-# Posición inicial del personaje
-antonio_x, antonio_y = WIDTH // 2, HEIGHT // 2
-speed = 5
-
-# Definir casas con colisión
-casas = {
-    "Enrique": pygame.Rect(100, 100, 80, 80),
-    "Viejas": pygame.Rect(600, 350, 80, 80),
-}
-
-# Definir áreas de colisión (casas y obstáculos)
-obstaculos = [
-    pygame.Rect(200, 50, 100, 100),  # Casa 1
-    pygame.Rect(400, 50, 100, 100),  # Casa 2
-    pygame.Rect(600, 50, 100, 100),  # Casa 3
-    pygame.Rect(100, 300, 150, 100),  # Casa 4
-    pygame.Rect(500, 300, 150, 100),  # Casa 5
-] + list(casas.values())  # Se agregan las casas como obstáculos
-
-# Lista de enemigos
-num_enemigos = 3
-enemigos = []
-for _ in range(num_enemigos):
-    enemigo_x = random.randint(0, WIDTH - 50)
-    enemigo_y = random.randint(0, HEIGHT - 50)
-    enemigos.append({"x": enemigo_x, "y": enemigo_y, "dx": random.choice([-3, 3]), "dy": random.choice([-3, 3])})
-
 # Cargar sprite de enemigo
 enemigo_img = pygame.image.load("static/marc.png")
 enemigo_img = pygame.transform.scale(enemigo_img, (50, 50))
@@ -67,8 +43,27 @@ game_over = False
 cinematica = None
 dentro_casa = None
 
+# Barra de vida
+vida_maxima = 100
+vida_actual = vida_maxima
+
 # Reloj
 clock = pygame.time.Clock()
+
+# Definición de casas y obstáculos
+casas = {
+    "Enrique": pygame.Rect(100, 100, 80, 80),
+    "Viejas": pygame.Rect(600, 350, 80, 80),
+}
+
+# Lista de enemigos
+num_enemigos = 3
+enemigos = []
+for _ in range(num_enemigos):
+    enemigo_x = random.randint(0, WIDTH - 50)
+    enemigo_y = random.randint(0, HEIGHT - 50)
+    enemigos.append({"x": enemigo_x, "y": enemigo_y, "dx": random.choice([-3, 3]), "dy": random.choice([-3, 3])})
+
 
 # Función para la pantalla de inicio
 def pantalla_inicio():
@@ -84,9 +79,45 @@ def pantalla_inicio():
 
     pygame.display.flip()
 
+
+# Función para dibujar la barra de vida estilo GTA
+def dibujar_barra_vida():
+    # Fondo de la barra de vida (oscuro)
+    pygame.draw.rect(screen, DARK_RED, (10, 10, 300, 30))
+
+    # Color de la vida (se cambia a amarillo cuando la vida está por debajo de cierto umbral)
+    if vida_actual > vida_maxima * 0.7:
+        color_vida = GREEN
+    elif vida_actual > vida_maxima * 0.3:
+        color_vida = YELLOW
+    else:
+        color_vida = RED
+
+    # Barra de vida actual
+    pygame.draw.rect(screen, color_vida, (10, 10, (vida_actual / vida_maxima) * 300, 30))
+
+
+# Función para reiniciar el juego
+def reiniciar_juego():
+    global antonio_x, antonio_y, vida_actual, enemigos, dentro_casa, cinematica, game_over
+    antonio_x, antonio_y = WIDTH // 2, HEIGHT // 2
+    vida_actual = vida_maxima  # Regenerar vida
+    enemigos = []  # Reiniciar lista de enemigos
+
+    # Volver a crear los enemigos con posiciones aleatorias
+    for _ in range(3):
+        enemigo_x = random.randint(0, WIDTH - 50)
+        enemigo_y = random.randint(0, HEIGHT - 50)
+        enemigos.append({"x": enemigo_x, "y": enemigo_y, "dx": random.choice([-3, 3]), "dy": random.choice([-3, 3])})
+
+    dentro_casa = None  # Reiniciar el estado de las casas
+    cinematica = None  # Reiniciar cualquier mensaje de cinemática
+    game_over = False  # Reiniciar el estado de Game Over
+
+
 # Función principal del juego
 def iniciar_juego():
-    global antonio_x, antonio_y, dentro_casa, cinematica, game_over
+    global antonio_x, antonio_y, dentro_casa, cinematica, game_over, vida_actual, enemigos
 
     while True:
         if dentro_casa == "Enrique":
@@ -95,6 +126,9 @@ def iniciar_juego():
             screen.blit(background_viejas, (0, 0))
         else:
             screen.blit(background, (0, 0))
+
+        # Dibujar la barra de vida estilo GTA
+        dibujar_barra_vida()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -106,18 +140,25 @@ def iniciar_juego():
         new_x, new_y = antonio_x, antonio_y
         keys = pygame.key.get_pressed()
         if keys[pygame.K_LEFT]:
-            new_x -= speed
+            new_x -= 5
         if keys[pygame.K_RIGHT]:
-            new_x += speed
+            new_x += 5
         if keys[pygame.K_UP]:
-            new_y -= speed
+            new_y -= 5
         if keys[pygame.K_DOWN]:
-            new_y += speed
+            new_y += 5
 
         # Crear un rectángulo con la nueva posición
         antonio_rect = pygame.Rect(new_x, new_y, 50, 50)
 
         # Verificar colisiones con casas y obstáculos
+        obstaculos = [
+                         pygame.Rect(200, 50, 100, 100),  # Casa 1
+                         pygame.Rect(400, 50, 100, 100),  # Casa 2
+                         pygame.Rect(600, 50, 100, 100),  # Casa 3
+                         pygame.Rect(100, 300, 150, 100),  # Casa 4
+                         pygame.Rect(500, 300, 150, 100),  # Casa 5
+                     ] + list(casas.values())  # Se agregan las casas como obstáculos
         colision = any(antonio_rect.colliderect(obst) for obst in obstaculos)
 
         # Si no hay colisión, mover a Antonio
@@ -154,7 +195,12 @@ def iniciar_juego():
             # Colisión con Antonio
             if antonio_rect.colliderect(pygame.Rect(enemigo["x"], enemigo["y"], 50, 50)):
                 antonio_x, antonio_y = WIDTH // 2, HEIGHT // 2
+                vida_actual -= 10  # Pierde 10 de vida cada vez que es atrapado por un enemigo
                 print("¡Te atraparon!")
+                if vida_actual <= 0:
+                    game_over = True
+                    print("¡Game Over!")
+                    return False  # Fin del juego
 
         # Mostrar cinemática
         if cinematica:
@@ -167,6 +213,7 @@ def iniciar_juego():
 
         pygame.display.flip()
         clock.tick(30)
+
 
 # Función principal
 def main():
@@ -181,12 +228,14 @@ def main():
                 return
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:  # Enter para jugar
+                    reiniciar_juego()  # Reiniciar el juego
                     iniciar_juego()
                 elif event.key == pygame.K_ESCAPE:  # Escape para salir
                     pygame.quit()
                     return
 
         clock.tick(30)
+
 
 # Iniciar el juego
 main()
