@@ -20,7 +20,7 @@ background = pygame.image.load("static/images.jpeg")  # Asegúrate de tener un f
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 background_enrique = pygame.image.load("static/images.jpeg")  # Fondo casa de Enrique
 background_enrique = pygame.transform.scale(background_enrique, (WIDTH, HEIGHT))
-background_viejas = pygame.image.load("static/images.jpeg")  # Fondo casa de las viejas
+background_viejas = pygame.image.load("static/viejas.png")  # Fondo casa de las viejas
 background_viejas = pygame.transform.scale(background_viejas, (WIDTH, HEIGHT))
 
 # Cargar sprite del personaje
