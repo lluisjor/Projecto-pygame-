@@ -23,7 +23,7 @@ fondo_inicio = pygame.image.load("static/fondo.png")
 fondo_inicio = pygame.transform.scale(fondo_inicio, (WIDTH, HEIGHT))
 
 # Cargar fondo
-background = pygame.image.load("static/images.jpeg")
+background = pygame.image.load("static/lqsa.png")
 background = pygame.transform.scale(background, (WIDTH, HEIGHT))
 background_enrique = pygame.image.load("static/viejas.png")
 background_enrique = pygame.transform.scale(background_enrique, (WIDTH, HEIGHT))
