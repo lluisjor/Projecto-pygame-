@@ -31,12 +31,8 @@ background_viejas = pygame.image.load("static/viejas.png")
 background_viejas = pygame.transform.scale(background_viejas, (WIDTH, HEIGHT))
 
 # Cargar sprite del personaje
-antonio_img = pygame.image.load("static/recio.png")
+antonio_img = pygame.image.load("static/enrique.png")
 antonio_img = pygame.transform.scale(antonio_img, (50, 50))
-
-# Cargar sprite de enemigo
-enemigo_img = pygame.image.load("static/marc.png")
-enemigo_img = pygame.transform.scale(enemigo_img, (50, 50))
 
 # Estados del juego
 game_over = False
@@ -55,15 +51,6 @@ casas = {
     "Enrique": pygame.Rect(100, 100, 80, 80),
     "Viejas": pygame.Rect(600, 350, 80, 80),
 }
-
-# Lista de enemigos
-num_enemigos = 3
-enemigos = []
-for _ in range(num_enemigos):
-    enemigo_x = random.randint(0, WIDTH - 50)
-    enemigo_y = random.randint(0, HEIGHT - 50)
-    enemigos.append({"x": enemigo_x, "y": enemigo_y, "dx": random.choice([-3, 3]), "dy": random.choice([-3, 3])})
-
 
 # Función para la pantalla de inicio
 def pantalla_inicio():
@@ -99,17 +86,9 @@ def dibujar_barra_vida():
 
 # Función para reiniciar el juego
 def reiniciar_juego():
-    global antonio_x, antonio_y, vida_actual, enemigos, dentro_casa, cinematica, game_over
+    global antonio_x, antonio_y, vida_actual, dentro_casa, cinematica, game_over
     antonio_x, antonio_y = WIDTH // 2, HEIGHT // 2
     vida_actual = vida_maxima  # Regenerar vida
-    enemigos = []  # Reiniciar lista de enemigos
-
-    # Volver a crear los enemigos con posiciones aleatorias
-    for _ in range(3):
-        enemigo_x = random.randint(0, WIDTH - 50)
-        enemigo_y = random.randint(0, HEIGHT - 50)
-        enemigos.append({"x": enemigo_x, "y": enemigo_y, "dx": random.choice([-3, 3]), "dy": random.choice([-3, 3])})
-
     dentro_casa = None  # Reiniciar el estado de las casas
     cinematica = None  # Reiniciar cualquier mensaje de cinemática
     game_over = False  # Reiniciar el estado de Game Over
@@ -117,7 +96,7 @@ def reiniciar_juego():
 
 # Función principal del juego
 def iniciar_juego():
-    global antonio_x, antonio_y, dentro_casa, cinematica, game_over, vida_actual, enemigos
+    global antonio_x, antonio_y, dentro_casa, cinematica, game_over, vida_actual
 
     while True:
         if dentro_casa == "Enrique":
@@ -178,29 +157,6 @@ def iniciar_juego():
                 if antonio_rect.colliderect(casa):
                     cinematica = f"Antonio entra en la casa de {nombre}..."
                     dentro_casa = nombre
-
-        # Dibujar enemigos y moverlos
-        for enemigo in enemigos:
-            enemigo["x"] += enemigo["dx"]
-            enemigo["y"] += enemigo["dy"]
-
-            # Rebotar en los bordes de la pantalla
-            if enemigo["x"] <= 0 or enemigo["x"] >= WIDTH - 50:
-                enemigo["dx"] = -enemigo["dx"]
-            if enemigo["y"] <= 0 or enemigo["y"] >= HEIGHT - 50:
-                enemigo["dy"] = -enemigo["dy"]
-
-            screen.blit(enemigo_img, (enemigo["x"], enemigo["y"]))
-
-            # Colisión con Antonio
-            if antonio_rect.colliderect(pygame.Rect(enemigo["x"], enemigo["y"], 50, 50)):
-                antonio_x, antonio_y = WIDTH // 2, HEIGHT // 2
-                vida_actual -= 10  # Pierde 10 de vida cada vez que es atrapado por un enemigo
-                print("¡Te atraparon!")
-                if vida_actual <= 0:
-                    game_over = True
-                    print("¡Game Over!")
-                    return False  # Fin del juego
 
         # Mostrar cinemática
         if cinematica:
