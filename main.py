@@ -23,7 +23,7 @@ BLUE = (0, 0, 255)
 fondo_inicio = pygame.image.load("static/fondo.png")
 fondo_inicio = pygame.transform.scale(fondo_inicio, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
-background = pygame.image.load("static/lqsa1.png")
+background = pygame.image.load("static/lqsa2.png")
 background = pygame.transform.scale(background, (BACKGROUND_WIDTH, BACKGROUND_HEIGHT))
 
 antonio_img = pygame.image.load("static/enrique.png")
