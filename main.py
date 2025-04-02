@@ -5,32 +5,27 @@ import random
 pygame.init()
 
 # Configuración de pantalla
-WIDTH, HEIGHT = 800, 600
-screen = pygame.display.set_mode((WIDTH, HEIGHT))
+SCREEN_WIDTH, SCREEN_HEIGHT = 800, 600  # Ajustado para mover el fondo
+BACKGROUND_WIDTH, BACKGROUND_HEIGHT = 1200, 1157  # Tamaño del fondo
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Antonio Recio: El Imperio del Marisco")
 
 # Colores
 WHITE = (255, 255, 255)
 RED = (200, 0, 0)
-GREEN = (0, 255, 0)  # Color para la barra de vida
-YELLOW = (255, 255, 0)  # Color intermedio para la vida
-DARK_RED = (139, 0, 0)  # Fondo de la barra de vida
+GREEN = (0, 255, 0)
+YELLOW = (255, 255, 0)
+DARK_RED = (139, 0, 0)
 BLACK = (0, 0, 0)
-BLUE = (0, 0, 255)  # Definición del color azul
+BLUE = (0, 0, 255)
 
-# Cargar fondo de la portada de inicio
+# Cargar imágenes
 fondo_inicio = pygame.image.load("static/fondo.png")
-fondo_inicio = pygame.transform.scale(fondo_inicio, (WIDTH, HEIGHT))
+fondo_inicio = pygame.transform.scale(fondo_inicio, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
-# Cargar fondo
-background = pygame.image.load("static/lqsa.png")
-background = pygame.transform.scale(background, (WIDTH, HEIGHT))
-background_enrique = pygame.image.load("static/viejas.png")
-background_enrique = pygame.transform.scale(background_enrique, (WIDTH, HEIGHT))
-background_viejas = pygame.image.load("static/viejas.png")
-background_viejas = pygame.transform.scale(background_viejas, (WIDTH, HEIGHT))
+background = pygame.image.load("static/lqsa1.png")
+background = pygame.transform.scale(background, (BACKGROUND_WIDTH, BACKGROUND_HEIGHT))
 
-# Cargar sprite del personaje
 antonio_img = pygame.image.load("static/enrique.png")
 antonio_img = pygame.transform.scale(antonio_img, (50, 50))
 
@@ -46,11 +41,13 @@ vida_actual = vida_maxima
 # Reloj
 clock = pygame.time.Clock()
 
-# Definición de casas y obstáculos
-casas = {
-    "Enrique": pygame.Rect(100, 100, 80, 80),
-    "Viejas": pygame.Rect(600, 350, 80, 80),
-}
+# Posiciones iniciales
+bg_x, bg_y = -(BACKGROUND_WIDTH - SCREEN_WIDTH) // 2, -(BACKGROUND_HEIGHT - SCREEN_HEIGHT) // 2
+antonio_x, antonio_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+
+# Límites para mover el fondo
+MARGIN_X, MARGIN_Y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+delta = 5  # Velocidad de movimiento
 
 # Función para la pantalla de inicio
 def pantalla_inicio():
@@ -58,140 +55,94 @@ def pantalla_inicio():
     texto_jugar = font.render("Presiona ENTER para Jugar", True, WHITE)
     texto_salir = font.render("Presiona ESC para Salir", True, WHITE)
 
-    screen.blit(fondo_inicio, (0, 0))  # Mostrar la imagen de fondo
-
-    # Mostrar las opciones en el centro de la pantalla
-    screen.blit(texto_jugar, (WIDTH // 2 - texto_jugar.get_width() // 2, HEIGHT // 2 - 40))
-    screen.blit(texto_salir, (WIDTH // 2 - texto_salir.get_width() // 2, HEIGHT // 2 + 40))
+    screen.blit(fondo_inicio, (0, 0))
+    screen.blit(texto_jugar, (SCREEN_WIDTH // 2 - texto_jugar.get_width() // 2, SCREEN_HEIGHT // 2 - 40))
+    screen.blit(texto_salir, (SCREEN_WIDTH // 2 - texto_salir.get_width() // 2, SCREEN_HEIGHT // 2 + 40))
 
     pygame.display.flip()
 
-
-# Función para dibujar la barra de vida estilo GTA
+# Función para dibujar la barra de vida
 def dibujar_barra_vida():
-    # Fondo de la barra de vida (oscuro)
     pygame.draw.rect(screen, DARK_RED, (10, 10, 300, 30))
-
-    # Color de la vida (se cambia a amarillo cuando la vida está por debajo de cierto umbral)
-    if vida_actual > vida_maxima * 0.7:
-        color_vida = GREEN
-    elif vida_actual > vida_maxima * 0.3:
-        color_vida = YELLOW
-    else:
-        color_vida = RED
-
-    # Barra de vida actual
+    color_vida = GREEN if vida_actual > vida_maxima * 0.7 else YELLOW if vida_actual > vida_maxima * 0.3 else RED
     pygame.draw.rect(screen, color_vida, (10, 10, (vida_actual / vida_maxima) * 300, 30))
-
 
 # Función para reiniciar el juego
 def reiniciar_juego():
-    global antonio_x, antonio_y, vida_actual, dentro_casa, cinematica, game_over
-    antonio_x, antonio_y = WIDTH // 2, HEIGHT // 2
-    vida_actual = vida_maxima  # Regenerar vida
-    dentro_casa = None  # Reiniciar el estado de las casas
-    cinematica = None  # Reiniciar cualquier mensaje de cinemática
-    game_over = False  # Reiniciar el estado de Game Over
-
+    global antonio_x, antonio_y, vida_actual, dentro_casa, cinematica, game_over, bg_x, bg_y
+    antonio_x, antonio_y = SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2
+    bg_x, bg_y = -(BACKGROUND_WIDTH - SCREEN_WIDTH) // 2, -(BACKGROUND_HEIGHT - SCREEN_HEIGHT) // 2
+    vida_actual = vida_maxima
+    dentro_casa = None
+    cinematica = None
+    game_over = False
 
 # Función principal del juego
 def iniciar_juego():
-    global antonio_x, antonio_y, dentro_casa, cinematica, game_over, vida_actual
+    global antonio_x, antonio_y, dentro_casa, cinematica, game_over, vida_actual, bg_x, bg_y
 
     while True:
-        if dentro_casa == "Enrique":
-            screen.blit(background_enrique, (0, 0))
-        elif dentro_casa == "Viejas":
-            screen.blit(background_viejas, (0, 0))
-        else:
-            screen.blit(background, (0, 0))
-
-        # Dibujar la barra de vida estilo GTA
+        screen.blit(background, (bg_x, bg_y))  # Dibujar fondo en movimiento
         dibujar_barra_vida()
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                return False  # Salir del juego
+                return False
             if event.type == pygame.KEYDOWN and event.key == pygame.K_ESCAPE:
                 dentro_casa = None
 
-        # Movimiento del personaje
-        new_x, new_y = antonio_x, antonio_y
+        # Movimiento del personaje y del fondo
         keys = pygame.key.get_pressed()
-        if keys[pygame.K_LEFT]:
-            new_x -= 5
-        if keys[pygame.K_RIGHT]:
-            new_x += 5
-        if keys[pygame.K_UP]:
-            new_y -= 5
-        if keys[pygame.K_DOWN]:
-            new_y += 5
 
-        # Crear un rectángulo con la nueva posición
-        antonio_rect = pygame.Rect(new_x, new_y, 50, 50)
+        # Movimiento vertical
+        if keys[pygame.K_w]:  # Arriba
+            if antonio_y > MARGIN_Y or bg_y >= 0:
+                antonio_y = max(antonio_y - delta, 0)
+            else:
+                bg_y = min(bg_y + delta, 0)
+        if keys[pygame.K_s]:  # Abajo
+            if antonio_y < SCREEN_HEIGHT - MARGIN_Y or bg_y <= SCREEN_HEIGHT - BACKGROUND_HEIGHT:
+                antonio_y = min(antonio_y + delta, SCREEN_HEIGHT - 50)
+            else:
+                bg_y = max(bg_y - delta, SCREEN_HEIGHT - BACKGROUND_HEIGHT)
 
-        # Verificar colisiones con casas y obstáculos
-        obstaculos = [
-                         pygame.Rect(200, 50, 100, 100),  # Casa 1
-                         pygame.Rect(400, 50, 100, 100),  # Casa 2
-                         pygame.Rect(600, 50, 100, 100),  # Casa 3
-                         pygame.Rect(100, 300, 150, 100),  # Casa 4
-                         pygame.Rect(500, 300, 150, 100),  # Casa 5
-                     ] + list(casas.values())  # Se agregan las casas como obstáculos
-        colision = any(antonio_rect.colliderect(obst) for obst in obstaculos)
-
-        # Si no hay colisión, mover a Antonio
-        if not colision:
-            antonio_x, antonio_y = new_x, new_y
+        # Movimiento horizontal
+        if keys[pygame.K_a]:  # Izquierda
+            if antonio_x > MARGIN_X or bg_x >= 0:
+                antonio_x = max(antonio_x - delta, 0)
+            else:
+                bg_x = min(bg_x + delta, 0)
+        if keys[pygame.K_d]:  # Derecha
+            if antonio_x < SCREEN_WIDTH - MARGIN_X or bg_x <= SCREEN_WIDTH - BACKGROUND_WIDTH:
+                antonio_x = min(antonio_x + delta, SCREEN_WIDTH - 50)
+            else:
+                bg_x = max(bg_x - delta, SCREEN_WIDTH - BACKGROUND_WIDTH)
 
         # Dibujar personaje
-        screen.blit(antonio_img, (antonio_x, antonio_y))
-
-        if dentro_casa is None:
-            # Dibujar casas
-            for casa in casas.values():
-                pygame.draw.rect(screen, BLUE, casa)
-
-            # Verificar colisiones con puertas
-            for nombre, casa in casas.items():
-                if antonio_rect.colliderect(casa):
-                    cinematica = f"Antonio entra en la casa de {nombre}..."
-                    dentro_casa = nombre
-
-        # Mostrar cinemática
-        if cinematica:
-            font = pygame.font.Font(None, 36)
-            texto = font.render(cinematica, True, BLACK)
-            screen.blit(texto, (50, HEIGHT // 2))
-            pygame.display.flip()
-            pygame.time.delay(2000)
-            cinematica = None
+        screen.blit(antonio_img, (antonio_x - 25, antonio_y - 25))
 
         pygame.display.flip()
         clock.tick(30)
 
-
 # Función principal
 def main():
-    jugando = True
-    while jugando:
+    while True:
         pantalla_inicio()
 
-        # Esperar una entrada para decidir jugar o salir
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RETURN:  # Enter para jugar
-                    reiniciar_juego()  # Reiniciar el juego
+                if event.key == pygame.K_RETURN:
+                    reiniciar_juego()
                     iniciar_juego()
-                elif event.key == pygame.K_ESCAPE:  # Escape para salir
+                elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     return
 
         clock.tick(30)
 
-
 # Iniciar el juego
 main()
+s
