@@ -25,7 +25,7 @@ background = pygame.transform.scale(background, (BACKGROUND_WIDTH, BACKGROUND_HE
 
 # Cargar imagen del personaje
 antonio_img = pygame.image.load("static/antonio.png")
-antonio_img = pygame.transform.scale(antonio_img, (50, 50))
+antonio_img = pygame.transform.scale(antonio_img, (35, 35))  # Personaje más pequeño
 
 # Cargar imagen de fondo para el menú
 menu_background = pygame.image.load("static/fondo.png")
@@ -34,8 +34,8 @@ menu_background = pygame.transform.scale(menu_background, (SCREEN_WIDTH, SCREEN_
 # Posición inicial del personaje
 antonio_x, antonio_y = BACKGROUND_WIDTH // 2, BACKGROUND_HEIGHT // 2
 
-# Velocidad del personaje
-velocidad = 5
+# Velocidad del personaje (más rápido)
+velocidad = 8
 
 # Barra de vida
 vida_maxima = 100
@@ -49,21 +49,19 @@ paredes = [
     pygame.Rect(2200, 800, 600, 400)
 ]
 
-# Área del ascensor (zona amarilla a la izquierda de las escaleras)
+# Área del ascensor
 ascensor = pygame.Rect(1080, 1340, 60, 60)
 
 # Reloj para control de FPS
 clock = pygame.time.Clock()
 
 
-# Función para dibujar barra de vida
 def dibujar_barra_vida():
     pygame.draw.rect(screen, (139, 0, 0), (10, 10, 300, 30))
     color_vida = (0, 255, 0) if vida_actual > 70 else (255, 255, 0) if vida_actual > 30 else (200, 0, 0)
     pygame.draw.rect(screen, color_vida, (10, 10, (vida_actual / vida_maxima) * 300, 30))
 
 
-# Menú del ascensor
 def mostrar_menu_ascensor():
     font = pygame.font.Font(None, 48)
     texto_piso1 = font.render("Presiona 1 para ir al Piso 1", True, (255, 255, 255))
@@ -83,7 +81,6 @@ def mostrar_menu_ascensor():
                     return "piso2"
 
 
-# Función para guardar partida
 def guardar_partida():
     data = {
         "antonio_x": antonio_x,
@@ -95,7 +92,6 @@ def guardar_partida():
     print("Partida guardada.")
 
 
-# Función para cargar partida
 def cargar_partida():
     global antonio_x, antonio_y, vida_actual
     if os.path.exists("savegame.json"):
@@ -107,7 +103,6 @@ def cargar_partida():
         print("Partida cargada.")
 
 
-# Menú de pausa
 def pausa():
     sonido_pausa.play(-1)
 
@@ -141,7 +136,6 @@ def pausa():
                     exit()
 
 
-# Pantalla de inicio
 def pantalla_inicio():
     pygame.mixer.music.play(-1)
     font = pygame.font.Font(None, 48)
@@ -173,7 +167,6 @@ def pantalla_inicio():
                     return
 
 
-# Función principal del juego
 def iniciar_juego():
     global antonio_x, antonio_y
 
@@ -203,15 +196,16 @@ def iniciar_juego():
         if keys[pygame.K_p]:
             pausa()
 
-        if not any(p.colliderect(pygame.Rect(nuevo_x, nuevo_y, 50, 50)) for p in paredes):
+        antonio_rect = pygame.Rect(nuevo_x, nuevo_y, 35, 35)
+        if not any(p.colliderect(antonio_rect) for p in paredes):
             antonio_x, antonio_y = nuevo_x, nuevo_y
 
-        if ascensor.colliderect(pygame.Rect(antonio_x, antonio_y, 50, 50)):
+        if ascensor.colliderect(pygame.Rect(antonio_x, antonio_y, 35, 35)):
             destino = mostrar_menu_ascensor()
             if destino == "piso1":
-                antonio_x, antonio_y = 1080, 1340  # Piso 1 (parte amarilla)
+                antonio_x, antonio_y = 1080, 1340
             elif destino == "piso2":
-                antonio_x, antonio_y = 1800, 500  # Piso 2 (puedes ajustar esto)
+                antonio_x, antonio_y = 1800, 500
 
         pygame.display.flip()
         clock.tick(30)
@@ -219,5 +213,4 @@ def iniciar_juego():
     pygame.quit()
 
 
-# Iniciar pantalla principal
 pantalla_inicio()
