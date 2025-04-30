@@ -1,6 +1,7 @@
 import pygame
 import json
 import os
+import math
 
 # Inicializar Pygame
 pygame.init()
@@ -14,9 +15,9 @@ pygame.display.set_caption("Antonio Recio: El Imperio del Marisco")
 pygame.mixer.music.load("static/lqsa.mp3")
 pygame.mixer.music.set_volume(0.5)
 
-# Cargar sonido para pausa
-sonido_pausa = pygame.mixer.Sound("static/lqsa.mp3")
-sonido_pausa.set_volume(0.5)
+# Cargar sonido para disparo
+sonido_disparo = pygame.mixer.Sound("static/lqsa.mp3")
+sonido_disparo.set_volume(0.5)
 
 # Cargar imagen de fondo
 BACKGROUND_WIDTH, BACKGROUND_HEIGHT = 3000, 2000
@@ -25,7 +26,7 @@ background = pygame.transform.scale(background, (BACKGROUND_WIDTH, BACKGROUND_HE
 
 # Cargar imagen del personaje
 antonio_img = pygame.image.load("static/antonio.png")
-antonio_img = pygame.transform.scale(antonio_img, (35, 35))  # Personaje más pequeño
+antonio_img = pygame.transform.scale(antonio_img, (50, 50))
 
 # Cargar imagen de fondo para el menú
 menu_background = pygame.image.load("static/fondo.png")
@@ -34,78 +35,49 @@ menu_background = pygame.transform.scale(menu_background, (SCREEN_WIDTH, SCREEN_
 # Posición inicial del personaje
 antonio_x, antonio_y = BACKGROUND_WIDTH // 2, BACKGROUND_HEIGHT // 2
 
-# Velocidad del personaje (más rápido)
-velocidad = 8
+# Velocidad del personaje
+velocidad = 5
 
 # Barra de vida
 vida_maxima = 100
 vida_actual = vida_maxima
 
-# Definir áreas de colisión
-paredes = [
-    pygame.Rect(0, 0, 500, 500),
-    pygame.Rect(600, 400, 800, 200),
-    pygame.Rect(1500, 100, 500, 700),
-    pygame.Rect(2200, 800, 600, 400)
-]
-
-# Área del ascensor
-ascensor = pygame.Rect(1080, 1340, 60, 60)
-
 # Reloj para control de FPS
 clock = pygame.time.Clock()
 
+# Lista de proyectiles
+proyectiles = []
 
+# Función para dibujar barra de vida
 def dibujar_barra_vida():
     pygame.draw.rect(screen, (139, 0, 0), (10, 10, 300, 30))
     color_vida = (0, 255, 0) if vida_actual > 70 else (255, 255, 0) if vida_actual > 30 else (200, 0, 0)
     pygame.draw.rect(screen, color_vida, (10, 10, (vida_actual / vida_maxima) * 300, 30))
 
 
-def mostrar_menu_ascensor():
-    font = pygame.font.Font(None, 48)
-    texto_piso1 = font.render("Presiona 1 para ir al Piso 1", True, (255, 255, 255))
-    texto_piso2 = font.render("Presiona 2 para ir al Piso 2", True, (255, 255, 255))
-    screen.fill((0, 0, 0))
-    screen.blit(texto_piso1, (SCREEN_WIDTH // 2 - 200, SCREEN_HEIGHT // 2 - 40))
-    screen.blit(texto_piso2, (SCREEN_WIDTH // 2 - 200, SCREEN_HEIGHT // 2 + 40))
-    pygame.display.flip()
+# Clase Proyectil
+class Proyectil(pygame.sprite.Sprite):
+    def __init__(self, x, y, angle):
+        super().__init__()
+        self.image = pygame.Surface((20, 10))
+        self.image.fill((255, 0, 0))  # Rojo, puedes cambiarlo
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.angle = angle
+        self.velocidad = 10  # Velocidad del proyectil
 
-    esperando = True
-    while esperando:
-        for event in pygame.event.get():
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_1:
-                    return "piso1"
-                if event.key == pygame.K_2:
-                    return "piso2"
+    def update(self):
+        # Movimiento del proyectil en la dirección del ángulo
+        self.rect.x += self.velocidad * math.cos(self.angle)
+        self.rect.y += self.velocidad * math.sin(self.angle)
 
-
-def guardar_partida():
-    data = {
-        "antonio_x": antonio_x,
-        "antonio_y": antonio_y,
-        "vida_actual": vida_actual
-    }
-    with open("savegame.json", "w") as f:
-        json.dump(data, f)
-    print("Partida guardada.")
+        # Eliminar proyectil si sale de la pantalla
+        if not screen.get_rect().colliderect(self.rect):
+            self.kill()
 
 
-def cargar_partida():
-    global antonio_x, antonio_y, vida_actual
-    if os.path.exists("savegame.json"):
-        with open("savegame.json", "r") as f:
-            data = json.load(f)
-            antonio_x = data.get("antonio_x", antonio_x)
-            antonio_y = data.get("antonio_y", antonio_y)
-            vida_actual = data.get("vida_actual", vida_actual)
-        print("Partida cargada.")
-
-
+# Menú de pausa
 def pausa():
-    sonido_pausa.play(-1)
-
     font = pygame.font.Font(None, 48)
     texto_continuar = font.render("Presiona O para continuar", True, (255, 255, 255))
     texto_guardar = font.render("Presiona G para guardar partida", True, (255, 255, 255))
@@ -121,21 +93,19 @@ def pausa():
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sonido_pausa.stop()
                 pygame.quit()
                 exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_o:
-                    sonido_pausa.stop()
                     pausado = False
                 elif event.key == pygame.K_g:
                     guardar_partida()
                 elif event.key == pygame.K_ESCAPE:
-                    sonido_pausa.stop()
                     pygame.quit()
                     exit()
 
 
+# Pantalla de inicio
 def pantalla_inicio():
     pygame.mixer.music.play(-1)
     font = pygame.font.Font(None, 48)
@@ -167,45 +137,44 @@ def pantalla_inicio():
                     return
 
 
+# Función principal del juego
 def iniciar_juego():
     global antonio_x, antonio_y
 
     running = True
     while running:
-        camera_x = max(0, min(antonio_x - SCREEN_WIDTH // 2, BACKGROUND_WIDTH - SCREEN_WIDTH))
-        camera_y = max(0, min(antonio_y - SCREEN_HEIGHT // 2, BACKGROUND_HEIGHT - SCREEN_HEIGHT))
-
-        screen.blit(background, (-camera_x, -camera_y))
+        screen.blit(background, (0, 0))
         dibujar_barra_vida()
-        screen.blit(antonio_img, (antonio_x - camera_x, antonio_y - camera_y))
+        screen.blit(antonio_img, (antonio_x, antonio_y))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 running = False
 
+        # Captura las teclas presionadas
         keys = pygame.key.get_pressed()
-        nuevo_x, nuevo_y = antonio_x, antonio_y
         if keys[pygame.K_w]:
-            nuevo_y -= velocidad
+            antonio_y -= velocidad
         if keys[pygame.K_s]:
-            nuevo_y += velocidad
+            antonio_y += velocidad
         if keys[pygame.K_a]:
-            nuevo_x -= velocidad
+            antonio_x -= velocidad
         if keys[pygame.K_d]:
-            nuevo_x += velocidad
+            antonio_x += velocidad
         if keys[pygame.K_p]:
             pausa()
 
-        antonio_rect = pygame.Rect(nuevo_x, nuevo_y, 35, 35)
-        if not any(p.colliderect(antonio_rect) for p in paredes):
-            antonio_x, antonio_y = nuevo_x, nuevo_y
+        # Disparo
+        if keys[pygame.K_SPACE]:
+            angle = math.radians(0)  # Disparo hacia la derecha (puedes ajustar el ángulo si quieres)
+            proyectil = Proyectil(antonio_x + 50, antonio_y + 25, angle)  # Crear proyectil en la posición de Antonio
+            proyectiles.append(proyectil)  # Añadir proyectil a la lista
+            sonido_disparo.play()  # Reproducir sonido de disparo
 
-        if ascensor.colliderect(pygame.Rect(antonio_x, antonio_y, 35, 35)):
-            destino = mostrar_menu_ascensor()
-            if destino == "piso1":
-                antonio_x, antonio_y = 1080, 1340
-            elif destino == "piso2":
-                antonio_x, antonio_y = 1800, 500
+        # Actualizar proyectiles
+        for proyectil in proyectiles:
+            proyectil.update()
+            screen.blit(proyectil.image, proyectil.rect)
 
         pygame.display.flip()
         clock.tick(30)
@@ -213,4 +182,5 @@ def iniciar_juego():
     pygame.quit()
 
 
+# Iniciar pantalla principal
 pantalla_inicio()
