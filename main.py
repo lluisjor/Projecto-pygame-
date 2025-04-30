@@ -14,11 +14,11 @@ pygame.display.set_caption("Antonio Recio: El Imperio del Marisco")
 pygame.mixer.music.load("static/lqsa.mp3")
 pygame.mixer.music.set_volume(0.5)
 
-# Cargar sonido de pausa
+# Cargar sonido para pausa
 sonido_pausa = pygame.mixer.Sound("static/lqsa.mp3")
-sonido_pausa.set_volume(0.3)
+sonido_pausa.set_volume(0.5)
 
-# Cargar imagen de fondo (escenario más grande que la pantalla)
+# Cargar imagen de fondo
 BACKGROUND_WIDTH, BACKGROUND_HEIGHT = 3000, 2000
 background = pygame.image.load("static/lqsa2.png")
 background = pygame.transform.scale(background, (BACKGROUND_WIDTH, BACKGROUND_HEIGHT))
@@ -49,11 +49,12 @@ paredes = [
     pygame.Rect(2200, 800, 600, 400)
 ]
 
-# Área del ascensor
-ascensor = pygame.Rect(1200, 800, 100, 100)
+# Área del ascensor (zona amarilla a la izquierda de las escaleras)
+ascensor = pygame.Rect(1080, 1340, 60, 60)
 
 # Reloj para control de FPS
 clock = pygame.time.Clock()
+
 
 # Función para dibujar barra de vida
 def dibujar_barra_vida():
@@ -61,23 +62,26 @@ def dibujar_barra_vida():
     color_vida = (0, 255, 0) if vida_actual > 70 else (255, 255, 0) if vida_actual > 30 else (200, 0, 0)
     pygame.draw.rect(screen, color_vida, (10, 10, (vida_actual / vida_maxima) * 300, 30))
 
+
 # Menú del ascensor
 def mostrar_menu_ascensor():
     font = pygame.font.Font(None, 48)
     texto_piso1 = font.render("Presiona 1 para ir al Piso 1", True, (255, 255, 255))
     texto_piso2 = font.render("Presiona 2 para ir al Piso 2", True, (255, 255, 255))
     screen.fill((0, 0, 0))
-    screen.blit(texto_piso1, (SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 - 40))
-    screen.blit(texto_piso2, (SCREEN_WIDTH // 2 - 150, SCREEN_HEIGHT // 2 + 40))
+    screen.blit(texto_piso1, (SCREEN_WIDTH // 2 - 200, SCREEN_HEIGHT // 2 - 40))
+    screen.blit(texto_piso2, (SCREEN_WIDTH // 2 - 200, SCREEN_HEIGHT // 2 + 40))
     pygame.display.flip()
+
     esperando = True
     while esperando:
         for event in pygame.event.get():
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_1:
-                    return 1
+                    return "piso1"
                 if event.key == pygame.K_2:
-                    return 2
+                    return "piso2"
+
 
 # Función para guardar partida
 def guardar_partida():
@@ -90,6 +94,7 @@ def guardar_partida():
         json.dump(data, f)
     print("Partida guardada.")
 
+
 # Función para cargar partida
 def cargar_partida():
     global antonio_x, antonio_y, vida_actual
@@ -101,12 +106,13 @@ def cargar_partida():
             vida_actual = data.get("vida_actual", vida_actual)
         print("Partida cargada.")
 
+
 # Menú de pausa
 def pausa():
-    sonido_pausa.play(-1)  # Inicia sonido de pausa en loop
+    sonido_pausa.play(-1)
 
     font = pygame.font.Font(None, 48)
-    texto_continuar = font.render("Presiona P para continuar", True, (255, 255, 255))
+    texto_continuar = font.render("Presiona O para continuar", True, (255, 255, 255))
     texto_guardar = font.render("Presiona G para guardar partida", True, (255, 255, 255))
     texto_salir = font.render("Presiona ESC para salir del juego", True, (255, 255, 255))
 
@@ -124,8 +130,8 @@ def pausa():
                 pygame.quit()
                 exit()
             if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_p:
-                    sonido_pausa.stop()  # Detiene el sonido al salir de pausa
+                if event.key == pygame.K_o:
+                    sonido_pausa.stop()
                     pausado = False
                 elif event.key == pygame.K_g:
                     guardar_partida()
@@ -134,7 +140,8 @@ def pausa():
                     pygame.quit()
                     exit()
 
-# Pantalla de inicio con imagen de fondo y opciones
+
+# Pantalla de inicio
 def pantalla_inicio():
     pygame.mixer.music.play(-1)
     font = pygame.font.Font(None, 48)
@@ -164,6 +171,7 @@ def pantalla_inicio():
                 elif event.key == pygame.K_ESCAPE:
                     pygame.quit()
                     return
+
 
 # Función principal del juego
 def iniciar_juego():
@@ -199,13 +207,17 @@ def iniciar_juego():
             antonio_x, antonio_y = nuevo_x, nuevo_y
 
         if ascensor.colliderect(pygame.Rect(antonio_x, antonio_y, 50, 50)):
-            piso = mostrar_menu_ascensor()
-            print(f"Viajando al Piso {piso}")
+            destino = mostrar_menu_ascensor()
+            if destino == "piso1":
+                antonio_x, antonio_y = 1080, 1340  # Piso 1 (parte amarilla)
+            elif destino == "piso2":
+                antonio_x, antonio_y = 1800, 500  # Piso 2 (puedes ajustar esto)
 
         pygame.display.flip()
         clock.tick(30)
 
     pygame.quit()
+
 
 # Iniciar pantalla principal
 pantalla_inicio()
