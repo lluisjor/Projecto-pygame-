@@ -2,7 +2,6 @@ import pygame
 import os
 import json
 
-# Inicialización
 pygame.init()
 
 # Configuración de ventana
@@ -14,9 +13,13 @@ pygame.display.set_caption("Antonio Recio: El Imperio del Marisco")
 pygame.mixer.music.load("static/lqsa.mp3")
 pygame.mixer.music.set_volume(0.6)
 
-# Fondo del juego
-background = pygame.image.load("static/lqsa2.png")
-BACKGROUND_WIDTH, BACKGROUND_HEIGHT = background.get_size()
+# Fondos del juego
+background_1 = pygame.image.load("static/la-que-se-avecina-pixilart (12) (3).png")
+BACKGROUND_WIDTH_1, BACKGROUND_HEIGHT_1 = background_1.get_size()
+
+# SEGUNDO FONDO (rellano o nueva planta)
+background_2 = pygame.image.load("static/rellanoo.png")  # Cambia por tu imagen
+BACKGROUND_WIDTH_2, BACKGROUND_HEIGHT_2 = background_2.get_size()
 
 # Fondo del menú
 menu_background = pygame.image.load("static/fondo.png")
@@ -33,29 +36,32 @@ clock = pygame.time.Clock()
 fuente = pygame.font.Font(None, 50)
 
 # Variables de juego
-antonio_x, antonio_y = BACKGROUND_WIDTH // 2, BACKGROUND_HEIGHT // 2
-velocidad = 6  # Velocidad del personaje
+antonio_x, antonio_y = BACKGROUND_WIDTH_1 // 2, BACKGROUND_HEIGHT_1 // 2
+velocidad = 6
 vida_maxima = 100
 vida_actual = vida_maxima
 
-# Área del ascensor (zona azul)
-ASCENSOR_X, ASCENSOR_Y = 400, 300
-ASCENSOR_ANCHO, ASCENSOR_ALTO = 100, 100
+# Ascensor en la primera pantalla
+ASCENSOR_X, ASCENSOR_Y = 830, 550
+ASCENSOR_ANCHO, ASCENSOR_ALTO = 196, 122
 
-# Función para mostrar el menú principal
+# Estado actual
+pantalla_actual = 1  # 1 = primer mapa, 2 = segundo mapa
+
+
 def mostrar_menu():
-    pygame.mixer.music.play(-1)  # Reproducir música en bucle
+    pygame.mixer.music.play(-1)
     en_menu = True
     while en_menu:
         screen.blit(menu_background, (0, 0))
 
         titulo = fuente.render("ANTONIO RECIO: EL IMPERIO DEL MARISCO", True, (255, 255, 255))
-        jugar_text = fuente.render("Presiona ENTER para Jugar", True, (255, 255, 255))
+        jugar = fuente.render("Presiona ENTER para Jugar", True, (255, 255, 255))
         cargar = fuente.render("Presiona C para Cargar Partida", True, (255, 255, 255))
         salir = fuente.render("Presiona ESC para Salir", True, (255, 255, 255))
 
         screen.blit(titulo, (SCREEN_WIDTH//2 - titulo.get_width()//2, SCREEN_HEIGHT//2 - 100))
-        screen.blit(jugar_text, (SCREEN_WIDTH//2 - jugar_text.get_width()//2, SCREEN_HEIGHT//2))
+        screen.blit(jugar, (SCREEN_WIDTH//2 - jugar.get_width()//2, SCREEN_HEIGHT//2))
         screen.blit(cargar, (SCREEN_WIDTH//2 - cargar.get_width()//2, SCREEN_HEIGHT//2 + 60))
         screen.blit(salir, (SCREEN_WIDTH//2 - salir.get_width()//2, SCREEN_HEIGHT//2 + 120))
 
@@ -77,29 +83,7 @@ def mostrar_menu():
                     pygame.mixer.music.stop()
                     en_menu = False
 
-# Función para guardar partida
-def guardar_partida():
-    data = {
-        "antonio_x": antonio_x,
-        "antonio_y": antonio_y,
-        "vida_actual": vida_actual
-    }
-    with open("savegame.json", "w") as f:
-        json.dump(data, f)
-    print("Partida guardada.")
 
-# Función para cargar partida
-def cargar_partida():
-    global antonio_x, antonio_y, vida_actual
-    if os.path.exists("savegame.json"):
-        with open("savegame.json", "r") as f:
-            data = json.load(f)
-            antonio_x = data.get("antonio_x", antonio_x)
-            antonio_y = data.get("antonio_y", antonio_y)
-            vida_actual = data.get("vida_actual", vida_actual)
-        print("Partida cargada.")
-
-# Función de pausa
 def pausa():
     sonido_pausa = pygame.mixer.Sound("static/videoplayback.mp3")
     sonido_pausa.play()
@@ -124,51 +108,59 @@ def pausa():
                 if event.key == pygame.K_o:
                     sonido_pausa.stop()
                     pausado = False
-                elif event.key == pygame.K_g:
-                    guardar_partida()
                 elif event.key == pygame.K_ESCAPE:
                     sonido_pausa.stop()
                     pygame.quit()
                     exit()
 
-# Función principal del juego con límites y cámara ajustada
+
+def transicion_fundido(color=(0, 0, 0), velocidad=15):
+    fade = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
+    fade.fill(color)
+    for alpha in range(0, 255, velocidad):
+        fade.set_alpha(alpha)
+        pygame.display.update()
+        screen.blit(fade, (0, 0))
+        pygame.display.flip()
+        pygame.time.delay(30)
+
+
 def jugar():
-    global antonio_x, antonio_y, vida_actual
+    global antonio_x, antonio_y, vida_actual, pantalla_actual
 
     running = True
-
-    # Dimensiones del mapa
-    MAPA_WIDTH, MAPA_HEIGHT = BACKGROUND_WIDTH, BACKGROUND_HEIGHT
-    ZOOM = 1.0  # Puedes ajustar el zoom aquí si quieres hacerlo dinámico
-
     while running:
         screen.fill((0, 0, 0))
 
-        # Cámara centrada y limitada
-        camera_x = max(0, min(antonio_x - SCREEN_WIDTH // 2, MAPA_WIDTH - SCREEN_WIDTH))
-        camera_y = max(0, min(antonio_y - SCREEN_HEIGHT // 2, MAPA_HEIGHT - SCREEN_HEIGHT))
+        if pantalla_actual == 1:
+            # ----- PANTALLA 1 -----
+            background = background_1
+            background_width, background_height = BACKGROUND_WIDTH_1, BACKGROUND_HEIGHT_1
+        else:
+            # ----- PANTALLA 2 -----
+            background = background_2
+            background_width, background_height = BACKGROUND_WIDTH_2, BACKGROUND_HEIGHT_2
+
+        camera_x = max(0, min(antonio_x - SCREEN_WIDTH // 2, background_width - SCREEN_WIDTH))
+        camera_y = max(0, min(antonio_y - SCREEN_HEIGHT // 2, background_height - SCREEN_HEIGHT))
 
         # Dibujar fondo
-        scaled_background = pygame.transform.scale(background, (int(MAPA_WIDTH * ZOOM), int(MAPA_HEIGHT * ZOOM)))
-        screen.blit(scaled_background, (-camera_x * ZOOM, -camera_y * ZOOM))
+        screen.blit(background, (-camera_x, -camera_y))
 
-        # Dibujar jugador
-        player_pos_x = (antonio_x - camera_x) * ZOOM
-        player_pos_y = (antonio_y - camera_y) * ZOOM
-        scaled_antonio = pygame.transform.scale(antonio_img, (int(50 * ZOOM), int(50 * ZOOM)))
-        screen.blit(scaled_antonio, (player_pos_x, player_pos_y))
+        # Dibujar ascensor solo en pantalla 1
+        if pantalla_actual == 1:
+            screen_x = ASCENSOR_X - camera_x
+            screen_y = ASCENSOR_Y - camera_y
+            pygame.draw.rect(screen, (0, 0, 255), (screen_x, screen_y, ASCENSOR_ANCHO, ASCENSOR_ALTO), 4)
 
-        # Dibujar ascensor
-        ascensor_x_scaled = (ASCENSOR_X - camera_x) * ZOOM
-        ascensor_y_scaled = (ASCENSOR_Y - camera_y) * ZOOM
-        pygame.draw.rect(screen, (0, 0, 255), (ascensor_x_scaled, ascensor_y_scaled, ASCENSOR_ANCHO * ZOOM, ASCENSOR_ALTO * ZOOM), 4)
+        # Dibujar Antonio
+        screen.blit(antonio_img, (antonio_x - camera_x, antonio_y - camera_y))
 
         # Barra de vida
         pygame.draw.rect(screen, (139, 0, 0), (10, 10, 300, 30))
         color_vida = (0, 255, 0) if vida_actual > 70 else (255, 255, 0) if vida_actual > 30 else (200, 0, 0)
         pygame.draw.rect(screen, color_vida, (10, 10, (vida_actual / vida_maxima) * 300, 30))
 
-        # Controles
         keys = pygame.key.get_pressed()
         if keys[pygame.K_w]:
             antonio_y -= velocidad
@@ -181,9 +173,22 @@ def jugar():
         if keys[pygame.K_p]:
             pausa()
 
-        # Limitar los movimientos para no salir del mapa
-        antonio_x = max(0, min(antonio_x, MAPA_WIDTH - 50))  # 50 = tamaño del sprite
-        antonio_y = max(0, min(antonio_y, MAPA_HEIGHT - 50))
+        # 🚧 LÍMITES del mapa
+        antonio_x = max(0, min(antonio_x, background_width - antonio_img.get_width()))
+        antonio_y = max(0, min(antonio_y, background_height - antonio_img.get_height()))
+
+        # Detectar entrada en ascensor (solo en pantalla 1)
+        if pantalla_actual == 1:
+            antonio_rect = pygame.Rect(antonio_x, antonio_y, antonio_img.get_width(), antonio_img.get_height())
+            ascensor_rect = pygame.Rect(ASCENSOR_X, ASCENSOR_Y, ASCENSOR_ANCHO, ASCENSOR_ALTO)
+
+            if antonio_rect.colliderect(ascensor_rect):
+                print("¡Entraste al ascensor! Transición...")
+                transicion_fundido()
+                # Mover a pantalla 2
+                pantalla_actual = 2
+                # Reseteamos la posición en la nueva pantalla
+                antonio_x, antonio_y = BACKGROUND_WIDTH_2 // 2, BACKGROUND_HEIGHT_2 // 2
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -194,6 +199,6 @@ def jugar():
 
     pygame.quit()
 
-# Iniciar el juego
+
 mostrar_menu()
 jugar()
