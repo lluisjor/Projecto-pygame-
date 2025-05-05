@@ -50,12 +50,12 @@ def mostrar_menu():
         screen.blit(menu_background, (0, 0))
 
         titulo = fuente.render("ANTONIO RECIO: EL IMPERIO DEL MARISCO", True, (255, 255, 255))
-        jugar = fuente.render("Presiona ENTER para Jugar", True, (255, 255, 255))
+        jugar_text = fuente.render("Presiona ENTER para Jugar", True, (255, 255, 255))
         cargar = fuente.render("Presiona C para Cargar Partida", True, (255, 255, 255))
         salir = fuente.render("Presiona ESC para Salir", True, (255, 255, 255))
 
         screen.blit(titulo, (SCREEN_WIDTH//2 - titulo.get_width()//2, SCREEN_HEIGHT//2 - 100))
-        screen.blit(jugar, (SCREEN_WIDTH//2 - jugar.get_width()//2, SCREEN_HEIGHT//2))
+        screen.blit(jugar_text, (SCREEN_WIDTH//2 - jugar_text.get_width()//2, SCREEN_HEIGHT//2))
         screen.blit(cargar, (SCREEN_WIDTH//2 - cargar.get_width()//2, SCREEN_HEIGHT//2 + 60))
         screen.blit(salir, (SCREEN_WIDTH//2 - salir.get_width()//2, SCREEN_HEIGHT//2 + 120))
 
@@ -67,7 +67,7 @@ def mostrar_menu():
                 exit()
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_RETURN:
-                    pygame.mixer.music.stop()  # Detener música cuando se inicia el juego
+                    pygame.mixer.music.stop()
                     en_menu = False
                 if event.key == pygame.K_ESCAPE:
                     pygame.quit()
@@ -101,7 +101,7 @@ def cargar_partida():
 
 # Función de pausa
 def pausa():
-    sonido_pausa = pygame.mixer.Sound("static/pause_sound.wav")
+    sonido_pausa = pygame.mixer.Sound("static/videoplayback.mp3")
     sonido_pausa.play()
 
     texto_continuar = fuente.render("Presiona O para continuar", True, (255, 255, 255))
@@ -131,26 +131,37 @@ def pausa():
                     pygame.quit()
                     exit()
 
-# Función principal del juego
+# Función principal del juego con límites y cámara ajustada
 def jugar():
     global antonio_x, antonio_y, vida_actual
 
     running = True
+
+    # Dimensiones del mapa
+    MAPA_WIDTH, MAPA_HEIGHT = BACKGROUND_WIDTH, BACKGROUND_HEIGHT
+    ZOOM = 1.0  # Puedes ajustar el zoom aquí si quieres hacerlo dinámico
+
     while running:
         screen.fill((0, 0, 0))
 
-        # Cámara centrada en el personaje
-        camera_x = max(0, min(antonio_x - SCREEN_WIDTH // 2, BACKGROUND_WIDTH - SCREEN_WIDTH))
-        camera_y = max(0, min(antonio_y - SCREEN_HEIGHT // 2, BACKGROUND_HEIGHT - SCREEN_HEIGHT))
+        # Cámara centrada y limitada
+        camera_x = max(0, min(antonio_x - SCREEN_WIDTH // 2, MAPA_WIDTH - SCREEN_WIDTH))
+        camera_y = max(0, min(antonio_y - SCREEN_HEIGHT // 2, MAPA_HEIGHT - SCREEN_HEIGHT))
 
-        # Dibujar fondo y jugador
-        screen.blit(background, (-camera_x, -camera_y))
-        screen.blit(antonio_img, (antonio_x - camera_x, antonio_y - camera_y))
+        # Dibujar fondo
+        scaled_background = pygame.transform.scale(background, (int(MAPA_WIDTH * ZOOM), int(MAPA_HEIGHT * ZOOM)))
+        screen.blit(scaled_background, (-camera_x * ZOOM, -camera_y * ZOOM))
 
-        # Dibujo del ascensor (zona azul visible)
-        screen_x = ASCENSOR_X - camera_x
-        screen_y = ASCENSOR_Y - camera_y
-        pygame.draw.rect(screen, (0, 0, 255), (screen_x, screen_y, ASCENSOR_ANCHO, ASCENSOR_ALTO), 4)
+        # Dibujar jugador
+        player_pos_x = (antonio_x - camera_x) * ZOOM
+        player_pos_y = (antonio_y - camera_y) * ZOOM
+        scaled_antonio = pygame.transform.scale(antonio_img, (int(50 * ZOOM), int(50 * ZOOM)))
+        screen.blit(scaled_antonio, (player_pos_x, player_pos_y))
+
+        # Dibujar ascensor
+        ascensor_x_scaled = (ASCENSOR_X - camera_x) * ZOOM
+        ascensor_y_scaled = (ASCENSOR_Y - camera_y) * ZOOM
+        pygame.draw.rect(screen, (0, 0, 255), (ascensor_x_scaled, ascensor_y_scaled, ASCENSOR_ANCHO * ZOOM, ASCENSOR_ALTO * ZOOM), 4)
 
         # Barra de vida
         pygame.draw.rect(screen, (139, 0, 0), (10, 10, 300, 30))
@@ -169,6 +180,10 @@ def jugar():
             antonio_x += velocidad
         if keys[pygame.K_p]:
             pausa()
+
+        # Limitar los movimientos para no salir del mapa
+        antonio_x = max(0, min(antonio_x, MAPA_WIDTH - 50))  # 50 = tamaño del sprite
+        antonio_y = max(0, min(antonio_y, MAPA_HEIGHT - 50))
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
