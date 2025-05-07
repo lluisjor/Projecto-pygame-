@@ -39,7 +39,7 @@ calvo_img = pygame.transform.scale(calvo_img, (50, 50))
 # Imágenes de eventos
 llave_img = pygame.image.load("static/llave.png")
 llave_img = pygame.transform.scale(llave_img, (400, 300))
-caja_fuerte_img = pygame.image.load("static/caja_fuerte.png")
+caja_fuerte_img = pygame.image.load("static/cajafuerte.png")
 caja_fuerte_img = pygame.transform.scale(caja_fuerte_img, (400, 300))
 
 # Reloj y fuente
