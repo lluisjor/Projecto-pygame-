@@ -40,7 +40,7 @@ calvo_img = pygame.transform.scale(calvo_img, (50, 50))
 llave_img = pygame.image.load("static/LLave.png")
 llave_img = pygame.transform.scale(llave_img, (400, 300))
 caja_fuerte_img = pygame.image.load("static/Caja_Fuerte.png")
-caja_fuerte_img = pygame.transform.scale(caja_fuerte_img, (400, 300))
+caja_fuerte_img = pygame.transform.scale(caja_fuerte_img, (500, 300))
 
 # Reloj y fuente
 clock = pygame.time.Clock()
@@ -108,33 +108,71 @@ def mostrar_menu():
         pygame.display.flip()
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
-                pygame.quit(); exit()
+                pygame.quit();
+                exit()
             if e.type == pygame.KEYDOWN:
                 if e.key in (pygame.K_RETURN, pygame.K_c):
-                    pygame.mixer.music.stop(); en_menu = False
+                    pygame.mixer.music.stop();
+                    en_menu = False
                 if e.key == pygame.K_ESCAPE:
-                    pygame.quit(); exit()
+                    pygame.quit();
+                    exit()
 
 
 def pausa():
     sonido = pygame.mixer.Sound("static/lqsa.mp3")
     sonido.play()
-    opciones = [fuente.render("O: continuar", True, (255, 255, 255)),
-                fuente.render("ESC: salir", True, (255, 255, 255))]
+    opciones = [
+        fuente.render("PAUSA", True, (255, 255, 255)),
+        fuente.render("O: continuar", True, (255, 255, 255)),
+        fuente.render("S: Guardar", True, (255, 255, 255)),
+        fuente.render("ESC: salir", True, (255, 255, 255))
+    ]
+
     while True:
         screen.fill((0, 0, 0))
-        screen.blit(opciones[0], (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 - 30))
-        screen.blit(opciones[1], (SCREEN_WIDTH // 2 - 100, SCREEN_HEIGHT // 2 + 30))
+
+        # Title of the pause menu
+        screen.blit(opciones[0], (SCREEN_WIDTH // 2 - opciones[0].get_width() // 2, SCREEN_HEIGHT // 2 - 90))
+
+        # Option texts
+        screen.blit(opciones[1], (SCREEN_WIDTH // 2 - opciones[1].get_width() // 2, SCREEN_HEIGHT // 2 - 30))
+        screen.blit(opciones[2], (SCREEN_WIDTH // 2 - opciones[2].get_width() // 2, SCREEN_HEIGHT // 2 + 30))
+        screen.blit(opciones[3], (SCREEN_WIDTH // 2 - opciones[3].get_width() // 2, SCREEN_HEIGHT // 2 + 90))
+
         pygame.display.flip()
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
-                pygame.quit(); exit()
+                pygame.quit();
+                exit()
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_o:
-                    sonido.stop(); return
+                    sonido.stop();
+                    return
+                if e.key == pygame.K_s:
+                    guardar_juego()  # Call your save function here
                 if e.key == pygame.K_ESCAPE:
-                    sonido.stop(); pygame.quit(); exit()
+                    sonido.stop();
+                    pygame.quit();
+                    exit()
 
+
+def guardar_juego():
+    # Aquí podrías agregar la lógica para guardar el estado del juego, como la posición de los personajes,
+    # objetos obtenidos y demás información relevante.
+    with open("save_game.json", "w") as save_file:
+        save_data = {
+            "antonio_x": antonio_x,
+            "antonio_y": antonio_y,
+            "obtuvo_llave": obtuvo_llave,
+            "dinero_robado": dinero_robado,
+            "pantalla_actual": pantalla_actual,
+        }
+        json.dump(save_data, save_file)
+    mostrar_mensaje("¡Juego guardado!")
+
+
+# El resto del código permanece igual...
 
 def transicion_fundido(color=(0, 0, 0), vel=15):
     fade = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
@@ -156,7 +194,8 @@ def mostrar_mensaje(texto):
 def mostrar_cuadro_dialogo(linea):
     alto = 120
     s = pygame.Surface((SCREEN_WIDTH - 100, alto))
-    s.set_alpha(200); s.fill((0, 0, 0))
+    s.set_alpha(200);
+    s.fill((0, 0, 0))
     screen.blit(s, (50, SCREEN_HEIGHT - alto - 50))
     pygame.draw.rect(screen, (255, 255, 255), (50, SCREEN_HEIGHT - alto - 50, SCREEN_WIDTH - 100, alto), 3)
     txt = fuente.render(linea, True, (255, 255, 255))
@@ -301,10 +340,12 @@ def jugar():
 
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
-                pygame.quit(); return
+                pygame.quit();
+                return
 
         pygame.display.flip()
         clock.tick(60)
+
 
 # Mostrar el menú al inicio
 mostrar_menu()
