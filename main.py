@@ -10,20 +10,17 @@ screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
 pygame.display.set_caption("Antonio Recio: El Imperio del Marisco")
 
 # Música
-pygame.mixer.music.load("static/moroso.mp3")
+pygame.mixer.music.load("static/lqsa.mp3")
 pygame.mixer.music.set_volume(0.6)
 
-# Cargar el sonido de robo
+# Cargar sonidos
 robo_sonido = pygame.mixer.Sound("static/mario-coin.mp3")
-
-# Cargar el sonido del ascensor
-sonido_ascensor = pygame.mixer.Sound("static/moroso.mp3")  # Asegúrate de tener un archivo de audio adecuado
+sonido_ascensor = pygame.mixer.Sound("static/moroso.mp3")
 sonido_ascensor.set_volume(0.5)
 
 # Fondos del juego
 background_1 = pygame.image.load("static/la-que-se-avecina-pixilart (12) (3).png")
 BACKGROUND_WIDTH_1, BACKGROUND_HEIGHT_1 = background_1.get_size()
-
 background_2 = pygame.image.load("static/rellanoo (2).png")
 BACKGROUND_WIDTH_2, BACKGROUND_HEIGHT_2 = background_2.get_size()
 
@@ -31,17 +28,19 @@ BACKGROUND_WIDTH_2, BACKGROUND_HEIGHT_2 = background_2.get_size()
 menu_background = pygame.image.load("static/fondo.png")
 menu_background = pygame.transform.scale(menu_background, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
-# Personaje Antonio
+# Personajes
 antonio_img = pygame.image.load("static/antonio.png")
 antonio_img = pygame.transform.scale(antonio_img, (50, 50))
-
-# Imagen de Enrique
 enrique_img = pygame.image.load("static/enrique.png")
 enrique_img = pygame.transform.scale(enrique_img, (50, 50))
-
-# Imagen del calvo
 calvo_img = pygame.image.load("static/enrique.png")
 calvo_img = pygame.transform.scale(calvo_img, (50, 50))
+
+# Imágenes de eventos
+llave_img = pygame.image.load("static/llave.png")
+llave_img = pygame.transform.scale(llave_img, (400, 300))
+caja_fuerte_img = pygame.image.load("static/caja_fuerte.png")
+caja_fuerte_img = pygame.transform.scale(caja_fuerte_img, (400, 300))
 
 # Reloj y fuente
 clock = pygame.time.Clock()
@@ -51,7 +50,7 @@ fuente = pygame.font.Font(None, 50)
 antonio_x, antonio_y = BACKGROUND_WIDTH_1 // 2, BACKGROUND_HEIGHT_1 // 2
 velocidad = 6
 
-# Posición estática de Enrique (primer mapa)
+# Posición estática de Enrique
 enrique_x, enrique_y = 2148, 1485
 
 # Zonas de interacción
@@ -76,7 +75,6 @@ dialogo_pelea = [
 ]
 
 
-# FUNCION OPTIMIZADA: Generar paredes (menos tirones)
 def generar_paredes_desde_imagen(imagen, escala=10):
     paredes = []
     ancho, alto = imagen.get_size()
@@ -92,14 +90,11 @@ def generar_paredes_desde_imagen(imagen, escala=10):
     return paredes
 
 
-# Cargar imágenes para detectar paredes
 mapa_img_1 = background_1.convert()
 mapa_img_2 = background_2.convert()
 paredes_mapa_1 = generar_paredes_desde_imagen(mapa_img_1, escala=10)
 paredes_mapa_2 = generar_paredes_desde_imagen(mapa_img_2, escala=10)
 
-
-# --------------------------- Menú y Funciones -------------------------
 
 def mostrar_menu():
     pygame.mixer.music.play(-1)
@@ -113,15 +108,12 @@ def mostrar_menu():
         pygame.display.flip()
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
-                pygame.quit();
-                exit()
+                pygame.quit(); exit()
             if e.type == pygame.KEYDOWN:
                 if e.key in (pygame.K_RETURN, pygame.K_c):
-                    pygame.mixer.music.stop();
-                    en_menu = False
+                    pygame.mixer.music.stop(); en_menu = False
                 if e.key == pygame.K_ESCAPE:
-                    pygame.quit();
-                    exit()
+                    pygame.quit(); exit()
 
 
 def pausa():
@@ -136,16 +128,12 @@ def pausa():
         pygame.display.flip()
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
-                pygame.quit();
-                exit()
+                pygame.quit(); exit()
             if e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_o:
-                    sonido.stop()
-                    return
+                    sonido.stop(); return
                 if e.key == pygame.K_ESCAPE:
-                    sonido.stop()
-                    pygame.quit();
-                    exit()
+                    sonido.stop(); pygame.quit(); exit()
 
 
 def transicion_fundido(color=(0, 0, 0), vel=15):
@@ -168,8 +156,7 @@ def mostrar_mensaje(texto):
 def mostrar_cuadro_dialogo(linea):
     alto = 120
     s = pygame.Surface((SCREEN_WIDTH - 100, alto))
-    s.set_alpha(200);
-    s.fill((0, 0, 0))
+    s.set_alpha(200); s.fill((0, 0, 0))
     screen.blit(s, (50, SCREEN_HEIGHT - alto - 50))
     pygame.draw.rect(screen, (255, 255, 255), (50, SCREEN_HEIGHT - alto - 50, SCREEN_WIDTH - 100, alto), 3)
     txt = fuente.render(linea, True, (255, 255, 255))
@@ -177,26 +164,21 @@ def mostrar_cuadro_dialogo(linea):
     pygame.display.flip()
 
 
-# --------------------------- Función de imagen y música en el ascensor -------------------------
+def mostrar_imagen_temporal(imagen, duracion_ms=2000):
+    screen.blit(imagen, (SCREEN_WIDTH // 2 - imagen.get_width() // 2, SCREEN_HEIGHT // 2 - imagen.get_height() // 2))
+    pygame.display.flip()
+    pygame.time.delay(duracion_ms)
+
 
 def mostrar_imagen_y_musica_en_ascensor():
-    # Cargar la imagen y mostrarla durante 8 segundos
-    imagen_ascensor = pygame.image.load("static/")
+    imagen_ascensor = pygame.image.load("static/ascensor.png")
     imagen_ascensor = pygame.transform.scale(imagen_ascensor, (SCREEN_WIDTH, SCREEN_HEIGHT))
     screen.blit(imagen_ascensor, (0, 0))
     pygame.display.flip()
-
-    # Reproducir la música
-    pygame.mixer.music.play(-1)  # Reproducir la música en bucle
-
-    # Mantener la imagen y la música durante 8 segundos
+    pygame.mixer.music.play(-1)
     pygame.time.delay(8000)
-
-    # Detener la música
     pygame.mixer.music.stop()
 
-
-# --------------------------- Lógica principal -------------------------
 
 def jugar():
     global antonio_x, antonio_y, pantalla_actual, obtuvo_llave, dinero_robado
@@ -205,8 +187,6 @@ def jugar():
     dialogo_visible = False
     idx_dialogo = 0
     dialogo_list = dialogo_inicial
-    sonido_ascensor_reproduciendo = False  # Controlar la reproducción del sonido del ascensor
-    tiempo_ascensor = 0  # Temporizador para controlar la duración del sonido
 
     while True:
         screen.fill((0, 0, 0))
@@ -223,7 +203,6 @@ def jugar():
         screen.blit(bg, (-cam_x, -cam_y))
 
         keys = pygame.key.get_pressed()
-
         screen.blit(antonio_img, (antonio_x - cam_x, antonio_y - cam_y))
 
         if pantalla_actual == 1:
@@ -256,6 +235,7 @@ def jugar():
                             (zr.x, zr.y - 30))
                 if keys[pygame.K_e]:
                     obtuvo_llave = True
+                    mostrar_imagen_temporal(llave_img)
                     mostrar_mensaje("Has robado la llave maestra")
 
         if pantalla_actual == 2 and not dinero_robado:
@@ -267,8 +247,8 @@ def jugar():
                 if keys[pygame.K_e] and obtuvo_llave:
                     dinero_robado = True
                     robo_sonido.play()
+                    mostrar_imagen_temporal(caja_fuerte_img)
 
-                    # Efecto visual: parpadeo verde
                     for _ in range(3):
                         overlay = pygame.Surface((SCREEN_WIDTH, SCREEN_HEIGHT))
                         overlay.set_alpha(120)
@@ -276,8 +256,8 @@ def jugar():
                         screen.blit(overlay, (0, 0))
                         pygame.display.flip()
                         pygame.time.delay(100)
-                        screen.blit(bg, (-cam_x, -cam_y))  # Redibuja fondo
-                        screen.blit(antonio_img, (antonio_x - cam_x, antonio_y - cam_y))  # Redibuja personaje
+                        screen.blit(bg, (-cam_x, -cam_y))
+                        screen.blit(antonio_img, (antonio_x - cam_x, antonio_y - cam_y))
                         pygame.display.flip()
                         pygame.time.delay(100)
 
@@ -294,13 +274,10 @@ def jugar():
             if keys[pygame.K_s]: nueva_y += velocidad
             if keys[pygame.K_a]: nueva_x -= velocidad
             if keys[pygame.K_d]: nueva_x += velocidad
-
             rect_nuevo = pygame.Rect(nueva_x, nueva_y, 50, 50)
             colisiona = any(rect_nuevo.colliderect(p) for p in paredes_actuales)
-
             if not colisiona:
                 antonio_x, antonio_y = nueva_x, nueva_y
-
             if keys[pygame.K_p]: pausa()
 
         antonio_x = max(0, min(antonio_x, bw - 50))
@@ -316,10 +293,7 @@ def jugar():
                 antonio_x, antonio_y = 1005 + 80, 20 + 30
             else:
                 antonio_x, antonio_y = 830 + 80, 550 + 30
-
-            # Mostrar imagen y reproducir música en el ascensor
             mostrar_imagen_y_musica_en_ascensor()
-
             ascensor_cd = 60
 
         if ascensor_cd > 0:
@@ -327,8 +301,7 @@ def jugar():
 
         for e in pygame.event.get():
             if e.type == pygame.QUIT:
-                pygame.quit();
-                return
+                pygame.quit(); return
 
         pygame.display.flip()
         clock.tick(60)
