@@ -37,9 +37,9 @@ calvo_img = pygame.image.load("static/enrique.png")
 calvo_img = pygame.transform.scale(calvo_img, (50, 50))
 
 # Imágenes de eventos
-llave_img = pygame.image.load("static/llave.png")
+llave_img = pygame.image.load("static/LLave.png")
 llave_img = pygame.transform.scale(llave_img, (400, 300))
-caja_fuerte_img = pygame.image.load("static/cajafuerte.png")
+caja_fuerte_img = pygame.image.load("static/Caja_Fuerte.png")
 caja_fuerte_img = pygame.transform.scale(caja_fuerte_img, (400, 300))
 
 # Reloj y fuente
@@ -229,7 +229,7 @@ def jugar():
 
         if pantalla_actual == 1 and not obtuvo_llave:
             zr = KEY_ZONE.move(-cam_x, -cam_y)
-            pygame.draw.rect(screen, (255, 255, 0), zr, 2)
+            screen.blit(pygame.transform.scale(llave_img, (40, 30)), (zr.x, zr.y))
             if zr.colliderect(pygame.Rect(antonio_x - cam_x, antonio_y - cam_y, 50, 50)):
                 screen.blit(fuente.render("E: Robar llave", True, (255, 255, 255)),
                             (zr.x, zr.y - 30))
@@ -240,7 +240,7 @@ def jugar():
 
         if pantalla_actual == 2 and not dinero_robado:
             sd = SAFE_ZONE.move(-cam_x, -cam_y)
-            pygame.draw.rect(screen, (255, 0, 0), sd, 2)
+            screen.blit(pygame.transform.scale(caja_fuerte_img, (40, 30)), (sd.x, sd.y))
             if sd.colliderect(pygame.Rect(antonio_x - cam_x, antonio_y - cam_y, 50, 50)):
                 screen.blit(fuente.render("E: Robar dinero", True, (255, 255, 255)),
                             (sd.x, sd.y - 30))
@@ -306,7 +306,8 @@ def jugar():
         pygame.display.flip()
         clock.tick(60)
 
-
-# Iniciar juego
+# Mostrar el menú al inicio
 mostrar_menu()
+
+# Iniciar el juego
 jugar()
